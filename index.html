@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HGZY /Time remaining 30 signal</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --neon-green: #00ff88;
+            --neon-red: #ff3e3e;
+            --neon-yellow: #ffee00;
+            --neon-blue: #00d9ff;
+            --glass: rgba(0, 0, 0, 0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: #000;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /*--- Signal Box with Green Border ---*/
+        .sig-box {
+            position: fixed;
+            top: 25%;
+            right: 15px;
+            width: 120px; 
+            background: var(--glass);
+            border-radius: 12px; 
+            padding: 12px 8px;
+            z-index: 10000;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            
+            /* Sharp Green Border */
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+            
+            /* Hidden until Firebase connects */
+            display: none;
+        }
+
+        .brand-name {
+            font-size: 14px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 8px var(--neon-green);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        #currentTime {
+            font-size: 10px;
+            color: var(--neon-blue);
+            margin-bottom: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        #timer {
+            font-size: 22px; 
+            color: #fff;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        #signalResult {
+            font-size: 24px; 
+            font-weight: 1000; 
+            text-transform: uppercase;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 5.6s Loading dots */
+        .analyzing-text:after {
+            content: ' .';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ' .'; }
+            40% { content: ' ..'; }
+            60% { content: ' ...'; }
+            80%, 100% { content: ' ....'; }
+        }
+
+        /* Signal Styles */
+        .SMALL { color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
+        .BIG { color: var(--neon-yellow); text-shadow: 0 0 20px var(--neon-yellow); }
+        .WAIT { color: #666; font-size: 14px !important; }
+
+        /* Login UI */
+        #passUI input {
+            width: 90%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: #111;
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            border-radius: 5px;
+            text-align: center;
+            font-size: 11px;
+            outline: none;
+        }
+
+        .btn-act {
+            background: var(--neon-green);
+            color: #000;
+            border: none;
+            padding: 8px;
+            width: 90%;
+            font-weight: 900;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body> 
+    <iframe src="https://hgnice.bet/#/register?invitationCode=511711502736"></iframe>
+
+    <div id="sigBox" class="sig-box">
+        <div id="passUI">
+            <div class="brand-name">HGZY</div>
+            <input type="password" id="passInput" placeholder="ENTER KEY">
+            <button class="btn-act" onclick="connectServer()">ACCESS</button>
+        </div>
+
+        <div id="mainUI" style="display:none">
+            <div id="currentTime">00:00:00</div> 
+            <div id="timer">00:30</div>          
+            <div id="signalResult" class="WAIT">WAITING</div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPBQOeApFZQwGX8G4mZxhY5C2jjN6VWmU",
+            authDomain: "dkwin-panel-ai.firebaseapp.com",
+            databaseURL: "https://dkwin-panel-ai-default-rtdb.firebaseio.com",
+            projectId: "dkwin-panel-ai",
+            storageBucket: "dkwin-panel-ai.firebasestorage.app",
+            messagingSenderId: "925573387640",
+            appId: "1:925573387640:web:8faf648b0b89933c89e48d"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Server Connection Check
+        const panel = document.getElementById('sigBox');
+        const connectedRef = database.ref(".info/connected");
+        connectedRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        });
+
+        function connectServer() {
+            const key = document.getElementById('passInput').value;
+            if (key === "VIP100") {
+                document.getElementById('passUI').style.display = 'none';
+                document.getElementById('mainUI').style.display = 'block';
+                startServerEngine();
+            } else { alert("ACCESS DENIED!"); }
+        }
+
+        function startServerEngine() {
+            const timerDisplay = document.getElementById('timer');
+            const clockDisplay = document.getElementById('currentTime');
+            const signalDisplay = document.getElementById('signalResult');
+
+            setInterval(() => {
+                const now = new Date();
+                let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+                clockDisplay.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+
+                const remaining = 30 - (s % 30);
+                timerDisplay.innerText = "00:" + (remaining < 10 ? "0" : "") + remaining;
+
+                if (remaining === 30) {
+                    // Start 5.6s Loading Phase
+                    signalDisplay.innerText = "ANALYZING";
+                    signalDisplay.className = "WAIT analyzing-text";
+
+                    setTimeout(() => {
+                        const rand = Math.random() * 100;
+                        const type = (rand > 50) ? "BIG" : "SMALL";
+                        signalDisplay.innerText = type;
+                        signalDisplay.className = type; 
+                    }, 5600); // Fixed 5.6s loading
+                }
+            }, 1000);
+        }
+
+        // Draggable Functionality
+        let touchX, touchY, panelX, panelY;
+        panel.addEventListener('touchstart', (e) => {
+            touchX = e.touches[0].clientX; touchY = e.touches[0].clientY;
+            panelX = panel.offsetLeft; panelY = panel.offsetTop;
+        });
+        panel.addEventListener('touchmove', (e) => {
+            const moveX = e.touches[0].clientX - touchX;
+            const moveY = e.touches[0].clientY - touchY;
+            panel.style.left = (panelX + moveX) + 'px';
+            panel.style.top = (panelY + moveY) + 'px';
+            panel.style.right = 'auto';
+        });
+    </script>
+</body>
+</html>
